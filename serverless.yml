@@ -1,0 +1,81 @@
+service: aws-node-loadserve
+
+provider:
+  name: aws
+  runtime: nodejs10.x
+  region: us-east-2
+  lambdaHashingVersion: 20201221
+  stage: ${opt:stage,'dev'}
+  environment:
+    STAGE: ${self:provider.stage}
+    tableContacts: ${self:custom.contactsTable}
+    tableLedger: ${self:custom.ledgerTable}
+
+plugins:
+  - serverless-webpack
+  - serverless-offline
+  - serverless-dynamodb-local
+
+package:
+  individually: true
+
+custom:
+  stages:
+    - local
+    - dev
+    - prod
+  contactsTable: Contacts
+  ledgerTable: Ledger
+  dynamodb:
+    stages:
+      - ${self:provider.stage}
+    start:
+      port: 8097
+      inMemory: true
+      migrate: true
+    migration:
+      dir: offline/migrations
+  webpack:
+    webpackConfig: ./webpack.config.js 
+    includeModules: true
+
+functions:
+  hello:
+    handler: src/handler.hello
+    events:
+      - http:
+          path: /
+          method: get
+
+resources:
+  Resources:
+    Contacts:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.contactsTable}
+        AttributeDefinitions:
+          - AttributeName: ID
+            AttributeType: S
+        KeySchema:
+          - AttributeName: ID
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 2
+          WriteCapacityUnits: 2
+    Ledger:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.ledgerTable}
+        AttributeDefinitions:
+          - AttributeName: DateTransact
+            AttributeType: S
+          - AttributeName: ContactID
+            AttributeType: S
+        KeySchema:
+          - AttributeName: DateTransact
+            KeyType: HASH
+          - AttributeName: ContactID
+            KeyType: RANGE
+        ProvisionedThroughput:
+          ReadCapacityUnits: 2
+          WriteCapacityUnits: 2
