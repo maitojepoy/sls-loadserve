@@ -1,0 +1,23 @@
+{
+  "definitions": {},
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "title": "New Load Credit Schema",
+  "required": ["contactId", "amount", "useWallet"],
+  "properties": {
+    "contactId": {
+      "type": "string",
+      "title": "Contact ID Schema"
+    },
+    "amount": {
+      "type": "number",
+      "title": "Amount Schema",
+      "default": 0
+    },
+    "useWallet": {
+      "type": "boolean",
+      "title": "Use Wallet Schema",
+      "default": false
+    }
+  }
+}

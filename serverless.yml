@@ -10,7 +10,22 @@ provider:
     STAGE: ${self:provider.stage}
     tableContacts: ${self:custom.contactsTable}
     tableLedger: ${self:custom.ledgerTable}
-
+    tableAccount: ${self:custom.accountTable}
+  apiGateway:
+    request:
+      schemas:
+        create-contact-model:
+          name: CreateContactModel
+          schema: ${file(schema/create_contact.json)}
+          description: "A Model validation for creating contact"
+        add-wallet-model:
+          name: AddWalletModel
+          schema: ${file(schema/add_wallet.json)}
+          description: "A Model validation for adding credits to wallet"
+        add-load-credit-model:
+          name: AddLoadCreditModel
+          schema: ${file(schema/add_loadcredit.json)}
+          description: "A Model validation for adding load credit"
 plugins:
   - serverless-webpack
   - serverless-offline
@@ -26,6 +41,7 @@ custom:
     - prod
   contactsTable: Contacts
   ledgerTable: Ledger
+  accountTable: Account
   dynamodb:
     stages:
       - ${self:provider.stage}
@@ -46,6 +62,33 @@ functions:
       - http:
           path: /
           method: get
+  createContact:
+    handler: src/contacts.create
+    events:
+      - http:
+          path: /contact
+          method: post
+          request:
+            schemas:
+              application/json: create-contact-model
+  addLoadWallet:
+    handler: src/wallet.create
+    events:
+      - http:
+          path: /wallet
+          method: post
+          request:
+            schemas:
+              application/json: add-wallet-model
+  addLoadCredit:
+    handler: src/loadcredit.create
+    events:
+      - http:
+          path: /load
+          method: post
+          request:
+            schemas:
+              application/json: add-load-credit-model
 
 resources:
   Resources:
@@ -66,6 +109,23 @@ resources:
       Type: AWS::DynamoDB::Table
       Properties:
         TableName: ${self:custom.ledgerTable}
+        AttributeDefinitions:
+          - AttributeName: DateTransact
+            AttributeType: S
+          - AttributeName: ContactID
+            AttributeType: S
+        KeySchema:
+          - AttributeName: DateTransact
+            KeyType: HASH
+          - AttributeName: ContactID
+            KeyType: RANGE
+        ProvisionedThroughput:
+          ReadCapacityUnits: 2
+          WriteCapacityUnits: 2
+    Account:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.accountTable}
         AttributeDefinitions:
           - AttributeName: DateTransact
             AttributeType: S

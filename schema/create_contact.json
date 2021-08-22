@@ -1,0 +1,20 @@
+{
+  "definitions": {},
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "title": "New Contact Schema",
+  "required": ["name", "contactNum"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "title": "Name Schema",
+      "default": "New Contact"
+    },
+    "contactNum": {
+      "type": "string",
+      "title": "Contact Number Schema",
+      "default": "0",
+      "pattern": "^[0-9]{10}$"
+    }
+  }
+}

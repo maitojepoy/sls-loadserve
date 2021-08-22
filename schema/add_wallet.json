@@ -1,0 +1,26 @@
+{
+  "definitions": {},
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "title": "Add Wallet Schema",
+  "required": ["contactId", "amount", "amountType"],
+  "properties": {
+    "contactId": {
+      "type": "string",
+      "title": "Contact ID Schema"
+    },
+    "amount": {
+      "type": "number",
+      "title": "Amount Schema",
+      "default": 0
+    },
+    "amountType": {
+      "type": "array",
+      "title": "Amount Type Schema",
+      "items": {
+        "type": "string",
+        "enum": ["debit", "credit"]
+      }
+    }
+  }
+}
