@@ -4,7 +4,7 @@ let options = {};
 if (process.env.IS_OFFLINE) {
   options = {
     region: 'localhost',
-    endpoint: 'http://localhost:8000',
+    endpoint: 'http://localhost:8097',
   };
 }
 
@@ -29,6 +29,14 @@ const Dynamo = {
     return data.Item;
   },
 
+  async list(TableName) {
+    const params = { TableName };
+
+    const items = await documentClient.scan(params).promise();
+    
+    return [...items.Items];
+  },
+
   async write(data, TableName) {
     if (!data.ID) {
       throw Error('no ID on the data');
@@ -46,6 +54,15 @@ const Dynamo = {
     }
 
     return data;
+  },
+
+  async delete(ID, TableName) {
+    const params = {
+      Key: { ID },
+      TableName,
+    };
+
+    return documentClient.delete(params).promise();
   },
 };
 export default Dynamo;

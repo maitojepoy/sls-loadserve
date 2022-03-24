@@ -44,10 +44,10 @@ custom:
   accountTable: Account
   dynamodb:
     stages:
-      - ${self:provider.stage}
+      - local
     start:
       port: 8097
-      inMemory: true
+      dbPath: ./db
       migrate: true
     migration:
       dir: offline/migrations
@@ -71,6 +71,18 @@ functions:
           request:
             schemas:
               application/json: create-contact-model
+  listContact:
+    handler: src/contacts.list
+    events:
+      - http:
+          path: /contacts
+          method: get
+  deleteContact:
+    handler: src/contacts.remove
+    events:
+      - http:
+          path: /contact/{ID}
+          method: delete
   addLoadWallet:
     handler: src/wallet.create
     events:
@@ -89,6 +101,12 @@ functions:
           request:
             schemas:
               application/json: add-load-credit-model
+  listLoadCredit:
+    handler: src/loadcredit.list
+    events:
+      - http:
+          path: /loads
+          method: get
 
 resources:
   Resources:
