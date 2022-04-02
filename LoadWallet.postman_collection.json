@@ -1,0 +1,92 @@
+{
+	"info": {
+		"_postman_id": "75c3d612-8386-496a-955f-f19eefd4426f",
+		"name": "LoadWallet",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "contact POST",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"id\": \"9f0d9431-7571-48a7-924a-b6b3734055a7\",\n  \"name\": \"Jepoy\",\n  \"contactNum\": \"09998817021\"\n}"
+				},
+				"url": {
+					"raw": "{{HOST}}/contact",
+					"host": [
+						"{{HOST}}"
+					],
+					"path": [
+						"contact"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "contacts GET",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{HOST}}/contacts",
+					"host": [
+						"{{HOST}}"
+					],
+					"path": [
+						"contacts"
+					]
+				},
+				"description": "contact list"
+			},
+			"response": []
+		},
+		{
+			"name": "consumer POST",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": ""
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "HOST",
+			"value": "http://localhost:8069/local"
+		}
+	]
+}
