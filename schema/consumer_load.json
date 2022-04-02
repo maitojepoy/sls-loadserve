@@ -2,8 +2,8 @@
   "definitions": {},
   "$schema": "http://json-schema.org/draft-04/schema#",
   "type": "object",
-  "title": "Add Wallet Schema",
-  "required": ["contactId", "amount", "amountType"],
+  "title": "Consumer Load Schema",
+  "required": ["contactId", "amount", "payment"],
   "properties": {
     "contactId": {
       "type": "string",
@@ -14,13 +14,10 @@
       "title": "Amount Schema",
       "default": 0
     },
-    "amountType": {
-      "type": "array",
-      "title": "Amount Type Schema",
-      "items": {
-        "type": "string",
-        "enum": ["debit", "credit"]
-      }
+    "payment": {
+      "type": "number",
+      "title": "Amount Schema",
+      "default": 0
     }
   }
 }

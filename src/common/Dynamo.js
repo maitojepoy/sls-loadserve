@@ -29,8 +29,8 @@ const Dynamo = {
     return data.Item;
   },
 
-  async list(TableName) {
-    const params = { TableName };
+  async list(TableName, conditions = {}) {
+    const params = { TableName, ...conditions };
 
     const items = await documentClient.scan(params).promise();
     
@@ -38,10 +38,6 @@ const Dynamo = {
   },
 
   async write(data, TableName) {
-    if (!data.ID) {
-      throw Error('no ID on the data');
-    }
-
     const params = {
       TableName,
       Item: data,

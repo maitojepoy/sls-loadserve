@@ -10,7 +10,9 @@ provider:
     STAGE: ${self:provider.stage}
     tableContacts: ${self:custom.contactsTable}
     tableLedger: ${self:custom.ledgerTable}
+    tableRetail: ${self:custom.retailTable}
     tableAccount: ${self:custom.accountTable}
+    dynamodbPort: ${self:custom.dynamodb.start.port}
   apiGateway:
     request:
       schemas:
@@ -41,6 +43,7 @@ custom:
     - prod
   contactsTable: Contacts
   ledgerTable: Ledger
+  retailTable: Retail
   accountTable: Account
   dynamodb:
     stages:
@@ -83,11 +86,11 @@ functions:
       - http:
           path: /contact/{ID}
           method: delete
-  addLoadWallet:
-    handler: src/wallet.create
+  consumerLoad:
+    handler: src/consumer.load
     events:
       - http:
-          path: /wallet
+          path: /consumer/load
           method: post
           request:
             schemas:
@@ -115,10 +118,10 @@ resources:
       Properties:
         TableName: ${self:custom.contactsTable}
         AttributeDefinitions:
-          - AttributeName: ID
+          - AttributeName: ContactID
             AttributeType: S
         KeySchema:
-          - AttributeName: ID
+          - AttributeName: ContactID
             KeyType: HASH
         ProvisionedThroughput:
           ReadCapacityUnits: 2
@@ -128,32 +131,52 @@ resources:
       Properties:
         TableName: ${self:custom.ledgerTable}
         AttributeDefinitions:
-          - AttributeName: DateTransact
-            AttributeType: S
           - AttributeName: ContactID
+            AttributeType: S
+          - AttributeName: Timestamp
+            AttributeType: N
+          - AttributeName: ActivityType
             AttributeType: S
         KeySchema:
-          - AttributeName: DateTransact
-            KeyType: HASH
           - AttributeName: ContactID
+            KeyType: HASH
+          - AttributeName: Timestamp
             KeyType: RANGE
         ProvisionedThroughput:
           ReadCapacityUnits: 2
           WriteCapacityUnits: 2
-    Account:
+        LocalSecondaryIndexes:
+        - IndexName: ContactActivity
+          KeySchema:
+          - AttributeName: ContactID
+            KeyType: HASH
+          - AttributeName: ActivityType
+            KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+    LoadRetail:
       Type: AWS::DynamoDB::Table
       Properties:
-        TableName: ${self:custom.accountTable}
+        TableName: ${self:custom.retailTable}
         AttributeDefinitions:
-          - AttributeName: DateTransact
+          - AttributeName: ActivityType
             AttributeType: S
-          - AttributeName: ContactID
+          - AttributeName: Timestamp
             AttributeType: S
         KeySchema:
-          - AttributeName: DateTransact
+          - AttributeName: ActivityType
             KeyType: HASH
-          - AttributeName: ContactID
+          - AttributeName: Timestamp
             KeyType: RANGE
         ProvisionedThroughput:
           ReadCapacityUnits: 2
           WriteCapacityUnits: 2
+        LocalSecondaryIndexes:
+        - IndexName: ContactActivity
+          KeySchema:
+          - AttributeName: ContactID
+            KeyType: HASH
+          - AttributeName: ActivityType
+            KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
