@@ -12,7 +12,7 @@ provider:
     tableLedger: ${self:custom.ledgerTable}
     tableRetail: ${self:custom.retailTable}
     tableAccount: ${self:custom.accountTable}
-    dynamodbPort: ${self:custom.dynamodb.start.port}
+    dynamodbPortLocal: ${self:custom.dynamodb.start.port}
   apiGateway:
     request:
       schemas:
@@ -20,16 +20,17 @@ provider:
           name: CreateContactModel
           schema: ${file(schema/create_contact.json)}
           description: "A Model validation for creating contact"
-        add-wallet-model:
-          name: AddWalletModel
-          schema: ${file(schema/add_wallet.json)}
-          description: "A Model validation for adding credits to wallet"
+        consumer-load-model:
+          name: ConsumerLoadModel
+          schema: ${file(schema/consumer_load.json)}
+          description: "A Model validation for consumer load to existing contact"
         add-load-credit-model:
           name: AddLoadCreditModel
           schema: ${file(schema/add_loadcredit.json)}
           description: "A Model validation for adding load credit"
 plugins:
   - serverless-webpack
+  - serverless-plugin-typescript
   - serverless-offline
   - serverless-dynamodb-local
 
@@ -94,22 +95,7 @@ functions:
           method: post
           request:
             schemas:
-              application/json: add-wallet-model
-  addLoadCredit:
-    handler: src/loadcredit.create
-    events:
-      - http:
-          path: /load
-          method: post
-          request:
-            schemas:
-              application/json: add-load-credit-model
-  listLoadCredit:
-    handler: src/loadcredit.list
-    events:
-      - http:
-          path: /loads
-          method: get
+              application/json: consumer-load-model
 
 resources:
   Resources:
@@ -120,9 +106,13 @@ resources:
         AttributeDefinitions:
           - AttributeName: ContactID
             AttributeType: S
+          - AttributeName: Timestamp
+            AttributeType: N
         KeySchema:
           - AttributeName: ContactID
             KeyType: HASH
+          - AttributeName: Timestamp
+            KeyType: RANGE
         ProvisionedThroughput:
           ReadCapacityUnits: 2
           WriteCapacityUnits: 2
@@ -159,12 +149,14 @@ resources:
       Properties:
         TableName: ${self:custom.retailTable}
         AttributeDefinitions:
-          - AttributeName: ActivityType
+          - AttributeName: ActivityWho
             AttributeType: S
           - AttributeName: Timestamp
             AttributeType: S
-        KeySchema:
           - AttributeName: ActivityType
+            AttributeType: S
+        KeySchema:
+          - AttributeName: ActivityWho
             KeyType: HASH
           - AttributeName: Timestamp
             KeyType: RANGE
@@ -172,9 +164,9 @@ resources:
           ReadCapacityUnits: 2
           WriteCapacityUnits: 2
         LocalSecondaryIndexes:
-        - IndexName: ContactActivity
+        - IndexName: ActivityWithType
           KeySchema:
-          - AttributeName: ContactID
+          - AttributeName: ActivityWho
             KeyType: HASH
           - AttributeName: ActivityType
             KeyType: RANGE

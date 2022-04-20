@@ -5,6 +5,10 @@
   "title": "New Contact Schema",
   "required": ["name", "contactNum"],
   "properties": {
+    "contactId": {
+      "type": "string",
+      "title": "Fixed Contact Id Schema"
+    },
     "name": {
       "type": "string",
       "title": "Name Schema",

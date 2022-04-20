@@ -1,28 +1,37 @@
 import { DynamoDB } from 'aws-sdk';
 
 let options = {};
-if (process.env.IS_OFFLINE) {
+const { IS_OFFLINE, dynamodbPortLocal } = process.env;
+if (IS_OFFLINE) {
   options = {
     region: 'localhost',
-    endpoint: 'http://localhost:8097',
+    endpoint: `http://localhost:${dynamodbPortLocal}`,
   };
 }
 
 const documentClient = new DynamoDB.DocumentClient(options);
 
 const Dynamo = {
-  async get(ID, TableName) {
+  OPERATION: {
+    gt: attr => `${attr} > :${attr.toLowerCase()}`,
+    lt: attr => `${attr} < ${attr.toLowerCase()}`,
+    gte: attr => `${attr} >= ${attr.toLowerCase()}`,
+    lte: attr => `${attr} <= ${attr.toLowerCase()}`,
+    eq: attr => `${attr} = ${attr.toLowerCase()}`,
+    default: (attr, func) => `${func}(${attr}, :${attr.toLowerCase()})`,
+    list: ['gt', 'lt', 'gte', 'lte', 'eq'],
+  },
+  async get(Key, TableName) {
     const params = {
       TableName,
-      Key: {
-        ID,
-      },
+      Key,
     };
 
     const data = await documentClient.get(params).promise();
 
     if (!data || !data.Item) {
-      throw Error(`There was an error fetching the data for ID of ${ID} from ${TableName}`);
+      const keys = Object.keys(Key);
+      throw Error(`There was an error fetching the data for ${keys[0]} of ${Key[0]} from ${TableName}`);
     }
     console.log(data);
 
@@ -52,13 +61,42 @@ const Dynamo = {
     return data;
   },
 
-  async delete(ID, TableName) {
+  async delete(Key, TableName) {
     const params = {
-      Key: { ID },
+      Key,
       TableName,
     };
 
     return documentClient.delete(params).promise();
+  },
+
+  async query(TableName, HashParams, RangeParams = null, ExtraParams = null) {
+    const hashKeys = Object.keys(HashParams);
+    const keyConditions = [hashKeys.map(hashKey => `${hashKey} = :${hashKey}`).join(' AND ')];
+    let expAttrValues = hashKeys.reduce((acc, curr) => {
+      return { ...acc, [`:${curr.toLowerCase()}`]: HashParams[curr] };
+    }, {});
+    if (RangeParams) {
+      const rangeKeys = Object.keys(RangeParams);
+      const rangeConditions = rangeKeys.map((rangeKey) => {
+        const { operation } = RangeParams[rangeKey];
+        return this.OPERATION.list.includes(operation) 
+          ? this.OPERATION[operation](rangeKey)
+          : this.operation.default(rangeKey, operation);
+      }).join(' AND ');
+      keyConditions.push(rangeConditions);
+      expAttrValues = rangeKeys.reduce((acc, curr) => {
+        return { ...acc, [`:${curr.toLowerCase()}`]: RangeParams[curr] };
+      }, { ... expAttrValues });
+    }
+    const params = {
+      TableName,
+      KeyConditionExpression: keyConditions.join(' AND '),
+      ExpressionAttributeValues: expAttrValues,
+      ...ExtraParams,
+    };
+
+    return documentClient.query(params).promise();
   },
 };
 export default Dynamo;
